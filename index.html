@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Prep Tracker</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --border-hover: #cbd5e1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            max-width: 500px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: var(--surface);
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .app-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .week-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .current-week {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn--primary {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn--primary:hover {
+            background: #047857;
+        }
+
+        .btn--outline {
+            background: transparent;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .btn--outline:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .btn--sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .day-navigation {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0.5rem;
+            position: sticky;
+            top: 80px;
+            z-index: 90;
+        }
+
+        .day-tabs {
+            display: flex;
+            gap: 0.25rem;
+            overflow-x: auto;
+        }
+
+        .day-tab {
+            padding: 0.5rem 0.75rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 0.875rem;
+            min-width: fit-content;
+        }
+
+        .day-tab.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .main-content {
+            padding: 1rem;
+        }
+
+        .schedule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .schedule-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .completion-badge {
+            background: var(--success-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .time-slot {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .time-slot-header {
+            background: var(--background);
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .time-slot-header:hover {
+            background: #f1f5f9;
+        }
+
+        .time-slot-time {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .time-slot-activity {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .chevron {
+            transition: transform 0.2s;
+        }
+
+        .time-slot.expanded .chevron {
+            transform: rotate(180deg);
+        }
+
+        .time-slot-content {
+            padding: 1rem;
+            display: none;
+        }
+
+        .time-slot.expanded .time-slot-content {
+            display: block;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: var(--background);
+            border-radius: 0.5rem;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .task-item:hover {
+            border-color: var(--border-hover);
+        }
+
+        .task-checkbox {
+            margin-top: 0.125rem;
+            width: 1rem;
+            height: 1rem;
+            accent-color: var(--success-color);
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .task-title.completed {
+            text-decoration: line-through;
+            color: var(--text-secondary);
+        }
+
+        .task-notes {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            resize: vertical;
+            min-height: 60px;
+            margin-top: 0.5rem;
+        }
+
+        .task-notes:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 1px var(--primary-color);
+        }
+
+        .progress-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .progress-modal.show {
+            display: flex;
+        }
+
+        .progress-content {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .progress-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .progress-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 0.5rem;
+            background: var(--border);
+            border-radius: 0.25rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success-color);
+            transition: width 0.3s ease;
+        }
+
+        .progress-input {
+            width: 60px;
+            padding: 0.25rem 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            text-align: center;
+        }
+
+        .close-modal {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .weekend-note {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 0.75rem;
+            }
+            
+            .app-title {
+                font-size: 1rem;
+            }
+            
+            .main-content {
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="app-title">Interview Prep Tracker</h1>
+                <button class="btn btn--primary btn--sm" id="progressBtn">Show Progress</button>
+            </div>
+            <div class="week-navigation">
+                <button class="btn btn--outline btn--sm" id="prevWeek">← Prev</button>
+                <span class="current-week" id="currentWeek">Week 1: Concurrency Foundation</span>
+                <button class="btn btn--outline btn--sm" id="nextWeek">Next →</button>
+            </div>
+        </header>
+
+        <!-- Day Navigation -->
+        <nav class="day-navigation">
+            <div class="day-tabs">
+                <button class="day-tab active" data-day="monday">Mon</button>
+                <button class="day-tab" data-day="tuesday">Tue</button>
+                <button class="day-tab" data-day="wednesday">Wed</button>
+                <button class="day-tab" data-day="thursday">Thu</button>
+                <button class="day-tab" data-day="friday">Fri</button>
+                <button class="day-tab" data-day="saturday">Sat</button>
+                <button class="day-tab" data-day="sunday">Sun</button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="schedule-header">
+                <h2 class="schedule-title" id="scheduleTitle">Monday - Week 1</h2>
+                <div class="completion-badge" id="completionBadge">0/0 Complete</div>
+            </div>
+            
+            <div class="schedule-container" id="scheduleContainer">
+                <!-- Time slots will be generated here -->
+            </div>
+        </main>
+
+        <!-- Progress Modal -->
+        <div class="progress-modal" id="progressModal">
+            <div class="progress-content">
+                <div class="progress-header">
+                    <h3>Your Progress</h3>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-label">
+                        <span>Concurrency</span>
+                        <input type="number" class="progress-input" id="concurrencyInput" min="0" max="100" value="20">%
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="concurrencyProgress" style="width: 20%"></div>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-label">
+                        <span>Low Level Design</span>
+                        <input type="number" class="progress-input" id="lldInput" min="0" max="100" value="20">%
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="lldProgress" style="width: 20%"></div>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-label">
+                        <span>DSA Speed</span>
+                        <input type="number" class="progress-input" id="dsaInput" min="0" max="100" value="60">%
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="dsaProgress" style="width: 60%"></div>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-label">
+                        <span>System Design</span>
+                        <input type="number" class="progress-input" id="systemInput" min="0" max="100" value="50">%
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="systemProgress" style="width: 50%"></div>
+                    </div>
+                </div>
+                <button class="close-modal" id="closeModal">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application Data
+        const APP_DATA = {
+            dailySchedule: {
+                "7:30-9:00": "Gym, breakfast, getting ready",
+                "9:00-18:00": "Work (with lunch break)",
+                "18:00-19:00": "Post-work break",
+                "19:00-20:00": "Solo study (Concurrency/LLD focus)",
+                "20:00-21:00": "Active practice (DSA/Implementation)",
+                "21:00-22:00": "Dinner",
+                "22:00-23:00": "Pair programming with friend"
+            },
+            
+            curriculum: {
+                week1: {
+                    theme: "Concurrency Foundation",
+                    weekdays: {
+                        monday: ["Java: Thread fundamentals", "BlockingQueue implementation"],
+                        tuesday: ["ReentrantLock & ReadWriteLock", "Producer-Consumer pattern"],
+                        wednesday: ["ConcurrentHashMap internals", "Semaphore & CountDownLatch"],
+                        thursday: ["ExecutorService & ThreadPool patterns", "CompletableFuture basics"],
+                        friday: ["Spring Boot Concurrency: @Async, TaskExecutor", "Async programming patterns"]
+                    },
+                    weekend: ["Logger Rate Limiter (Databricks problem)", "Thread-safe BoundedQueue", "Help friend with system design basics"]
+                },
+                week2: {
+                    theme: "Advanced Concurrency + LLD Start",
+                    weekdays: {
+                        monday: ["Concurrent collections deep dive", "Memory models, volatile, atomic"],
+                        tuesday: ["Spring Boot Concurrency Patterns", "Reactive programming basics"],
+                        wednesday: ["SOLID principles", "Dependency Injection patterns"],
+                        thursday: ["Factory & Builder patterns", "Strategy pattern with Spring"],
+                        friday: ["Observer pattern", "Event-driven design"]
+                    },
+                    weekend: ["Concurrent data structures implementation", "Design patterns in Spring Boot", "Friend: Load balancers, databases"]
+                },
+                week3: {
+                    theme: "LLD Deep Dive",
+                    weekdays: {
+                        monday: ["Spring Boot design patterns", "MVC architecture deep dive"],
+                        tuesday: ["REST API design principles", "Exception handling patterns"],
+                        wednesday: ["Database integration patterns", "Transaction management"],
+                        thursday: ["Security patterns in Spring", "Authentication/Authorization"],
+                        friday: ["Testing patterns", "Mock frameworks"]
+                    },
+                    weekend: ["Hit Counter design (Spring Boot)", "Tic-Tac-Toe system design", "Friend: ML platform architecture"]
+                },
+                week4: {
+                    theme: "DSA Speed + Mock Interviews",
+                    weekdays: {
+                        monday: ["Python DSA pattern review", "Array & String optimization"],
+                        tuesday: ["Tree & Graph algorithms speed", "Dynamic programming patterns"],
+                        wednesday: ["Hash table & heap problems", "Sorting algorithm optimization"],
+                        thursday: ["Binary search variations", "Two-pointer technique"],
+                        friday: ["Sliding window problems", "Greedy algorithms"]
+                    },
+                    weekend: ["Databricks DSA problems", "House Robber series", "Mock interview sessions"]
+                },
+                week5: {
+                    theme: "Integration + Databricks Focus",
+                    weekdays: {
+                        monday: ["Delta Lake architecture", "Apache Spark fundamentals"],
+                        tuesday: ["ML pipelines on Databricks", "Data lakehouse patterns"],
+                        wednesday: ["Real-time ML inference systems", "Feature store design"],
+                        thursday: ["Distributed data processing", "Event streaming architectures"],
+                        friday: ["Company culture research", "Behavioral interview prep"]
+                    },
+                    weekend: ["End-to-end system design", "ML + data pipeline integration", "Comprehensive mock interviews"]
+                },
+                week6: {
+                    theme: "Polish + Applications",
+                    weekdays: {
+                        monday: ["Resume tailoring", "Cover letter optimization"],
+                        tuesday: ["Behavioral stories preparation", "STAR method practice"],
+                        wednesday: ["Questions for interviewers", "Company research"],
+                        thursday: ["Weak area review", "Final mock interviews"],
+                        friday: ["APPLICATION SUBMISSION", "Interview scheduling"]
+                    },
+                    weekend: ["Final mock interview day", "Rest & mental preparation"]
+                }
+            },
+            
+            progressTargets: {
+                concurrency: { start: 20, target: 90 },
+                lld: { start: 20, target: 85 },
+                dsa: { start: 60, target: 95 },
+                system: { start: 50, target: 95 }
+            }
+        };
+
+        // Application State
+        let currentWeek = 1;
+        let currentDay = 'monday';
+        let appState = {
+            completedTasks: {},
+            taskNotes: {},
+            progress: {
+                concurrency: 20,
+                lld: 20,
+                dsa: 60,
+                system: 50
+            }
+        };
+
+        // ----- Progress derivation from completed tasks -----
+        const CATEGORY_KEYS = ['concurrency', 'lld', 'dsa', 'system'];
+
+        function getTaskCategory(task, weekNumber) {
+            const t = (task || '').toLowerCase();
+            const keywordMap = {
+                concurrency: [
+                    'thread', 'lock', 'semaphore', 'countdownlatch', 'concurrent', 'executor',
+                    'threadpool', 'completablefuture', 'async', 'rate limiter', 'boundedqueue'
+                ],
+                lld: [
+                    'solid', 'dependency injection', 'factory', 'builder', 'strategy', 'observer',
+                    'design pattern', 'mvc', 'exception handling', 'testing patterns', 'mock'
+                ],
+                dsa: [
+                    'array', 'string', 'tree', 'graph', 'dynamic programming', 'hash', 'heap',
+                    'sorting', 'binary search', 'two-pointer', 'sliding window', 'greedy', 'dsa'
+                ],
+                system: [
+                    'system design', 'rest api', 'database', 'transaction', 'security', 'auth',
+                    'load balancer', 'ml', 'databricks', 'spark', 'delta lake', 'event', 'stream',
+                    'feature store', 'data pipeline', 'resume', 'cover letter', 'behavioral', 'application'
+                ]
+            };
+
+            for (const key of CATEGORY_KEYS) {
+                if (keywordMap[key].some(k => t.includes(k))) return key;
+            }
+
+            // Fallback to week theme if keywords didn't match
+            const theme = (APP_DATA.curriculum[`week${weekNumber}`]?.theme || '').toLowerCase();
+            if (theme.includes('concurrency')) return 'concurrency';
+            if (theme.includes('lld')) return 'lld';
+            if (theme.includes('dsa')) return 'dsa';
+            if (theme.includes('system')) return 'system';
+            return 'concurrency'; // conservative default
+        }
+
+        function enumerateAllTasksWithIds() {
+            const all = [];
+            for (let w = 1; w <= 6; w++) {
+                const weekData = APP_DATA.curriculum[`week${w}`];
+                if (!weekData) continue;
+
+                // Weekdays: two tasks (index 0 -> 19:00-20:00, index 1 -> 20:00-21:00)
+                const weekdays = weekData.weekdays || {};
+                Object.entries(weekdays).forEach(([day, tasks]) => {
+                    (tasks || []).forEach((task, index) => {
+                        const slot = index === 0 ? '19:00-20:00' : '20:00-21:00';
+                        const id = `w${w}_${day}_${slot}_${task}`;
+                        const category = getTaskCategory(task, w);
+                        all.push({ id, task, category });
+                    });
+                });
+
+                // Weekend
+                (weekData.weekend || []).forEach(task => {
+                    const id = `w${w}_weekend_weekend_${task}`;
+                    const category = getTaskCategory(task, w);
+                    all.push({ id, task, category });
+                });
+            }
+            return all;
+        }
+
+        function updateDerivedProgressFromCompletions() {
+            const allTasks = enumerateAllTasksWithIds();
+            const totals = { concurrency: 0, lld: 0, dsa: 0, system: 0 };
+            const done = { concurrency: 0, lld: 0, dsa: 0, system: 0 };
+
+            allTasks.forEach(({ id, category }) => {
+                if (!totals.hasOwnProperty(category)) return;
+                totals[category] += 1;
+                if (appState.completedTasks[id]) done[category] += 1;
+            });
+
+            CATEGORY_KEYS.forEach(key => {
+                const start = APP_DATA.progressTargets[key].start;
+                const target = APP_DATA.progressTargets[key].target;
+                const span = Math.max(0, target - start);
+                const ratio = totals[key] > 0 ? (done[key] / totals[key]) : 0;
+                const computed = Math.round(start + ratio * span);
+                appState.progress[key] = Math.max(0, Math.min(100, computed));
+            });
+        }
+
+        // Load state from localStorage
+        function loadState() {
+            const saved = localStorage.getItem('interviewPrepState');
+            if (saved) {
+                appState = { ...appState, ...JSON.parse(saved) };
+            }
+        }
+
+        // Save state to localStorage
+        function saveState() {
+            localStorage.setItem('interviewPrepState', JSON.stringify(appState));
+        }
+
+        // Get tasks for current day/week
+        function getCurrentTasks() {
+            const weekData = APP_DATA.curriculum[`week${currentWeek}`];
+            if (!weekData) return [];
+            
+            if (currentDay === 'saturday' || currentDay === 'sunday') {
+                return weekData.weekend || [];
+            } else {
+                return weekData.weekdays[currentDay] || [];
+            }
+        }
+
+        // Generate task ID
+        function getTaskId(timeSlot, task) {
+            return `w${currentWeek}_${currentDay}_${timeSlot}_${task}`;
+        }
+
+        // Render schedule
+        function renderSchedule() {
+            const container = document.getElementById('scheduleContainer');
+            const title = document.getElementById('scheduleTitle');
+            const badge = document.getElementById('completionBadge');
+            const weekTheme = APP_DATA.curriculum[`week${currentWeek}`]?.theme || '';
+            
+            title.textContent = `${currentDay.charAt(0).toUpperCase() + currentDay.slice(1)} - Week ${currentWeek}`;
+            
+            let totalTasks = 0;
+            let completedTasks = 0;
+            
+            container.innerHTML = '';
+            
+            // Weekend handling
+            if (currentDay === 'saturday' || currentDay === 'sunday') {
+                const weekendDiv = document.createElement('div');
+                weekendDiv.className = 'weekend-note';
+                weekendDiv.textContent = `Weekend Focus (8 hours each day): ${weekTheme}`;
+                container.appendChild(weekendDiv);
+                
+                const tasks = getCurrentTasks();
+                tasks.forEach((task, index) => {
+                    const taskId = getTaskId('weekend', task);
+                    const isCompleted = appState.completedTasks[taskId];
+                    const notes = appState.taskNotes[taskId] || '';
+                    
+                    totalTasks++;
+                    if (isCompleted) completedTasks++;
+                    
+                    const taskDiv = document.createElement('div');
+                    taskDiv.className = 'task-item';
+                    taskDiv.innerHTML = `
+                        <input type="checkbox" class="task-checkbox" ${isCompleted ? 'checked' : ''} 
+                               onchange="toggleTask('${taskId}')">
+                        <div class="task-content">
+                            <div class="task-title ${isCompleted ? 'completed' : ''}">${task}</div>
+                            <textarea class="task-notes" placeholder="Add your notes here..." 
+                                      onchange="updateNotes('${taskId}', this.value)">${notes}</textarea>
+                        </div>
+                    `;
+                    container.appendChild(taskDiv);
+                });
+            } else {
+                // Weekday schedule
+                const studyTasks = getCurrentTasks();
+                
+                Object.entries(APP_DATA.dailySchedule).forEach(([timeSlot, activity]) => {
+                    const timeSlotDiv = document.createElement('div');
+                    timeSlotDiv.className = 'time-slot';
+                    
+                    let tasksHtml = '';
+                    let hasStudyTasks = false;
+                    
+                    // Add study tasks to relevant time slots
+                    if (timeSlot === '19:00-20:00' || timeSlot === '20:00-21:00') {
+                        hasStudyTasks = true;
+                        studyTasks.forEach((task, index) => {
+                            if ((timeSlot === '19:00-20:00' && index === 0) || 
+                                (timeSlot === '20:00-21:00' && index === 1)) {
+                                const taskId = getTaskId(timeSlot, task);
+                                const isCompleted = appState.completedTasks[taskId];
+                                const notes = appState.taskNotes[taskId] || '';
+                                
+                                totalTasks++;
+                                if (isCompleted) completedTasks++;
+                                
+                                tasksHtml += `
+                                    <div class="task-item">
+                                        <input type="checkbox" class="task-checkbox" ${isCompleted ? 'checked' : ''} 
+                                               onchange="toggleTask('${taskId}')">
+                                        <div class="task-content">
+                                            <div class="task-title ${isCompleted ? 'completed' : ''}">${task}</div>
+                                            <textarea class="task-notes" placeholder="Add your notes here..." 
+                                                      onchange="updateNotes('${taskId}', this.value)">${notes}</textarea>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        });
+                    }
+                    
+                    timeSlotDiv.innerHTML = `
+                        <div class="time-slot-header" onclick="toggleTimeSlot(this)">
+                            <div>
+                                <div class="time-slot-time">${timeSlot}</div>
+                                <div class="time-slot-activity">${activity}</div>
+                            </div>
+                            <div class="chevron">▼</div>
+                        </div>
+                        <div class="time-slot-content">
+                            ${hasStudyTasks ? tasksHtml : '<p style="color: #64748b; font-style: italic;">No specific tasks for this time slot</p>'}
+                        </div>
+                    `;
+                    
+                    container.appendChild(timeSlotDiv);
+                });
+            }
+            
+            badge.textContent = `${completedTasks}/${totalTasks} Complete`;
+        }
+
+        // Toggle time slot expansion
+        function toggleTimeSlot(header) {
+            const timeSlot = header.parentElement;
+            timeSlot.classList.toggle('expanded');
+        }
+
+        // Toggle task completion
+        function toggleTask(taskId) {
+            appState.completedTasks[taskId] = !appState.completedTasks[taskId];
+            updateDerivedProgressFromCompletions();
+            saveState();
+            renderSchedule();
+            // If modal is open, refresh its bars
+            const modal = document.getElementById('progressModal');
+            if (modal && modal.classList.contains('show')) {
+                updateProgressDisplay();
+            }
+        }
+
+        // Update task notes
+        function updateNotes(taskId, notes) {
+            appState.taskNotes[taskId] = notes;
+            saveState();
+        }
+
+        // Week navigation
+        function changeWeek(direction) {
+            const newWeek = currentWeek + direction;
+            if (newWeek >= 1 && newWeek <= 6) {
+                currentWeek = newWeek;
+                updateWeekDisplay();
+                renderSchedule();
+            }
+        }
+
+        // Update week display
+        function updateWeekDisplay() {
+            const weekTheme = APP_DATA.curriculum[`week${currentWeek}`]?.theme || '';
+            document.getElementById('currentWeek').textContent = `Week ${currentWeek}: ${weekTheme}`;
+        }
+
+        // Day navigation
+        function changeDay(day) {
+            currentDay = day;
+            
+            // Update active tab
+            document.querySelectorAll('.day-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-day="${day}"]`).classList.add('active');
+            
+            renderSchedule();
+        }
+
+        // Progress modal
+        function showProgress() {
+            document.getElementById('progressModal').classList.add('show');
+            updateProgressDisplay();
+        }
+
+        function closeProgress() {
+            document.getElementById('progressModal').classList.remove('show');
+        }
+
+        function updateProgressDisplay() {
+            const inputs = ['concurrencyInput', 'lldInput', 'dsaInput', 'systemInput'];
+            const bars = ['concurrencyProgress', 'lldProgress', 'dsaProgress', 'systemProgress'];
+            const keys = ['concurrency', 'lld', 'dsa', 'system'];
+            
+            keys.forEach((key, index) => {
+                const input = document.getElementById(inputs[index]);
+                const bar = document.getElementById(bars[index]);
+                
+                input.value = appState.progress[key];
+                bar.style.width = appState.progress[key] + '%';
+                
+                input.addEventListener('input', (e) => {
+                    const value = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
+                    appState.progress[key] = value;
+                    bar.style.width = value + '%';
+                    saveState();
+                });
+            });
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ensure that UI still wires up even if initial render fails
+            try {
+                loadState();
+                updateDerivedProgressFromCompletions();
+                updateWeekDisplay();
+                renderSchedule();
+            } catch (err) {
+                console.error('Failed to initialize schedule:', err);
+            }
+            
+            // Week navigation
+            try {
+                document.getElementById('prevWeek').addEventListener('click', () => changeWeek(-1));
+                document.getElementById('nextWeek').addEventListener('click', () => changeWeek(1));
+            } catch (err) {
+                console.error('Failed to wire week navigation:', err);
+            }
+            
+            // Day navigation
+            try {
+                document.querySelectorAll('.day-tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        changeDay(e.target.dataset.day);
+                    });
+                });
+            } catch (err) {
+                console.error('Failed to wire day navigation:', err);
+            }
+            
+            // Progress modal
+            try {
+                document.getElementById('progressBtn').addEventListener('click', showProgress);
+                document.getElementById('closeModal').addEventListener('click', closeProgress);
+                document.getElementById('progressModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'progressModal') closeProgress();
+                });
+            } catch (err) {
+                console.error('Failed to wire progress modal:', err);
+            }
+        });
+
+        // Global functions for inline handlers
+        window.toggleTask = toggleTask;
+        window.updateNotes = updateNotes;
+        window.toggleTimeSlot = toggleTimeSlot;
+    </script>
+</body>
+</html>
